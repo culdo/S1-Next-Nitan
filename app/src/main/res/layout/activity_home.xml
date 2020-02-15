@@ -83,7 +83,7 @@
                         app:preLoad="@{preLoad}"
                         app:thumb="@{thumb}"
                         app:uid="@{data.homeUid}"
-                        tools:src="@drawable/ic_avatar_placeholder" />
+                        tools:src="@drawable/noavatar_big" />
 
                     <RelativeLayout
                         android:layout_width="match_parent"

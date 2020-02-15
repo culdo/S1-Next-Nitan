@@ -90,7 +90,7 @@ public final class ViewBindingAdapter {
         blurTransformation.setTargetSize(50);
         if (TextUtils.isEmpty(newBlurUrl)) {
             Glide.with(view)
-                    .load(R.drawable.ic_avatar_placeholder)
+                    .load(R.drawable.noavatar_big)
                     .apply(new RequestOptions()
                             .centerCrop()
                             .transform(blurTransformation)

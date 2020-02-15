@@ -71,7 +71,7 @@ public final class ImageViewBindingAdapter {
                             .signature(downloadPreferencesManager.getAvatarCacheInvalidationIntervalSignature())
                     )
                     .error(requestManager
-                            .load(R.drawable.ic_drawer_avatar_placeholder)
+                            .load(R.drawable.noavatar_big)
                             .apply(RequestOptions.circleCropTransform()))
                     .listener(new RequestListener<Drawable>() {
                         @Override
@@ -133,7 +133,7 @@ public final class ImageViewBindingAdapter {
     private static void loadPlaceHolderAvatar(ImageView imageView) {
         imageView.setTag(R.id.tag_drawable_info, null);
         Glide.with(imageView)
-                .load(R.drawable.ic_drawer_avatar_placeholder)
+                .load(R.drawable.noavatar_big)
                 .apply(RequestOptions.circleCropTransform())
                 .into(imageView);
     }
@@ -175,7 +175,7 @@ public final class ImageViewBindingAdapter {
                 .apply(new RequestOptions()
                         .circleCrop()
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .error(R.drawable.ic_drawer_avatar_placeholder)
+                        .error(R.drawable.noavatar_big)
                         .signature(downloadPreferencesManager.getAvatarCacheInvalidationIntervalSignature())
                         .priority(Priority.LOW)
                 )
@@ -239,7 +239,7 @@ public final class ImageViewBindingAdapter {
                                     .signature(downloadPreferencesManager.getAvatarCacheInvalidationIntervalSignature())
                                     .diskCacheStrategy(DiskCacheStrategy.DATA)));
         } else {
-            listener = listener.thumbnail(requestManager.load(R.drawable.ic_drawer_avatar_placeholder).apply(RequestOptions.circleCropTransform()));
+            listener = listener.thumbnail(requestManager.load(R.drawable.noavatar_big).apply(RequestOptions.circleCropTransform()));
         }
         if (fade) {
             listener = listener.transition(DrawableTransitionOptions.withCrossFade(300));

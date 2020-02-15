@@ -45,7 +45,7 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tv_time"
             app:uid="@{pmViewModel.pm.authorId}"
-            tools:src="@drawable/ic_avatar_placeholder" />
+            tools:src="@drawable/noavatar_big" />
 
         <TextView
             android:id="@+id/tv_message"

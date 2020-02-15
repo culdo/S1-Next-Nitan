@@ -33,7 +33,7 @@
                 android:contentDescription="@string/avatar_content_desc"
                 android:onClick="@{model::onAvatarClick}"
                 app:uid="@{model.darkRoom.uid}"
-                tools:src="@drawable/ic_avatar_placeholder" />
+                tools:src="@drawable/noavatar_big" />
 
             <TextView
                 android:id="@+id/author_name"

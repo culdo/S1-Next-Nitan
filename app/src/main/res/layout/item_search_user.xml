@@ -38,7 +38,7 @@
                 android:layout_marginRight="@dimen/item_padding"
                 android:contentDescription="@string/avatar_content_desc"
                 app:uid="@{model.search.uid}"
-                tools:src="@drawable/ic_avatar_placeholder" />
+                tools:src="@drawable/noavatar_big" />
 
             <TextView
                 android:id="@+id/name"
