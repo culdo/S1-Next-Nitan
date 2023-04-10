@@ -26,11 +26,20 @@ class DownloadPreferencesImpl(context: Context, sharedPreferences: SharedPrefere
     override val avatarResolutionStrategyIndex: Int by PreferenceDelegates.int(
             R.string.pref_key_avatar_resolution_strategy, R.string.pref_avatar_resolution_strategy_default_value)
 
+    override val avatarGifEnable: Boolean by PreferenceDelegates.bool(
+            R.string.pref_key_avatar_gif_enable, R.bool.pref_avatar_gif_enable_default_value)
+
     override val avatarCacheInvalidationInterval: Int by PreferenceDelegates.int(
             R.string.pref_key_avatar_cache_invalidation_interval, R.string.pref_avatar_cache_invalidation_interval_default_value)
 
     override val imagesDownloadStrategyIndex: Int by PreferenceDelegates.int(
             R.string.pref_key_download_images_strategy, R.string.pref_download_images_strategy_default_value)
+
+    override val multiThreadDownload:Boolean by PreferenceDelegates.bool(
+            R.string.pref_key_multi_download, R.bool.pref_key_multi_download_default_value)
+
+    override val postMaxImageShow: Int by PreferenceDelegates.int(
+            R.string.pref_key_post_max_image_show, R.string.pref_post_max_image_show_default_value)
 }
 
 interface DownloadPreferences {
@@ -40,5 +49,8 @@ interface DownloadPreferences {
     val avatarsDownloadStrategyIndex: Int
     val avatarResolutionStrategyIndex: Int
     val avatarCacheInvalidationInterval: Int
+    val avatarGifEnable: Boolean
     val imagesDownloadStrategyIndex: Int
+    val multiThreadDownload:Boolean
+    val postMaxImageShow:Int
 }

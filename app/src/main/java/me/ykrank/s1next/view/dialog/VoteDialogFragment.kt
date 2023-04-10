@@ -2,7 +2,7 @@ package me.ykrank.s1next.view.dialog
 
 import android.app.Dialog
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,8 +35,10 @@ import javax.inject.Inject
 class VoteDialogFragment : BaseDialogFragment(), VoteViewModel.VoteVmAction {
     @Inject
     lateinit var appService: AppService
+
     @Inject
     lateinit var s1Service: S1Service
+
     @Inject
     lateinit var mUser: User
 
@@ -50,8 +52,8 @@ class VoteDialogFragment : BaseDialogFragment(), VoteViewModel.VoteVmAction {
     override fun onCreate(savedInstanceState: Bundle?) {
         App.appComponent.inject(this)
         super.onCreate(savedInstanceState)
-        tid = arguments!!.getString(ARG_THREAD_ID)
-        mVote = arguments!!.getParcelable(ARG_VOTE)
+        tid = arguments!!.getString(ARG_THREAD_ID)!!
+        mVote = arguments!!.getParcelable(ARG_VOTE)!!
 
         adapter = SimpleRecycleViewAdapter(context!!, R.layout.item_vote, false, BindViewHolderCallback { position, itemBind ->
             itemBind as ItemVoteBinding
@@ -67,7 +69,7 @@ class VoteDialogFragment : BaseDialogFragment(), VoteViewModel.VoteVmAction {
         binding.model = model
 
         binding.recycleView.adapter = adapter
-        binding.recycleView.layoutManager = LinearLayoutManager(context)
+        binding.recycleView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
         mVote.voteOptions?.let {
             data = it.values.map { ItemVoteViewModel(binding.model!!, it) }
             adapter.swapDataSet(data)
@@ -80,25 +82,25 @@ class VoteDialogFragment : BaseDialogFragment(), VoteViewModel.VoteVmAction {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
-        dialog.window.requestFeature(Window.FEATURE_NO_TITLE)
+        dialog.window?.requestFeature(Window.FEATURE_NO_TITLE)
 
         return dialog
     }
 
     override fun onStart() {
         super.onStart()
-        dialog.window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
     private fun loadData() {
         Singles.zip(appService.getPollInfo(mUser.appSecureToken, tid), appService.getPollOptions(mUser.appSecureToken, tid))
                 .compose(ApiFlatTransformer.apiPairErrorTransformer())
                 .compose(RxJavaUtil.iOSingleTransformer())
+                .map { (a,b)-> a.data to b.data }
                 .to(AndroidRxDispose.withSingle(this, FragmentEvent.DESTROY))
-                .subscribe({
-                    val appVote = it.first.data
+                .subscribe({ (appVote, voteOptions)->
                     binding.model?.appVote?.set(appVote)
-                    it.second.data?.let {
+                    voteOptions?.let {
                         data.forEachIndexed { index, vm ->
                             vm.option.mergeWithAppVoteOption(it[index], appVote?.voters
                                     ?: mVote.voteCount)

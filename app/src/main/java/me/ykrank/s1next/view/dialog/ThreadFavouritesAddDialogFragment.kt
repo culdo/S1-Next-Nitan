@@ -2,9 +2,9 @@ package me.ykrank.s1next.view.dialog
 
 import android.app.Dialog
 import android.content.DialogInterface
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v7.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.view.WindowManager
 
 import com.github.ykrank.androidtools.util.ViewUtil
@@ -39,7 +39,7 @@ class ThreadFavouritesAddDialogFragment : BaseDialogFragment() {
                 if (!threadId.isNullOrEmpty()) {
                     ThreadFavouritesAddRequestDialogFragment.newInstance(threadId,
                             binding.remark.text.toString(), arguments?.getString(ARG_THREAD_TITLE))
-                            .show(fragmentManager, ThreadFavouritesAddRequestDialogFragment.TAG)
+                            .show(fragmentManager!!, ThreadFavouritesAddRequestDialogFragment.TAG)
                 }
             }
             ViewUtil.consumeRunnableWhenImeActionPerformed(binding.remark) { alertDialog.getButton(DialogInterface.BUTTON_POSITIVE).performClick() }

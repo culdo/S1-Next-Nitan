@@ -1,7 +1,7 @@
 package me.ykrank.s1next.view.fragment
 
 import android.annotation.SuppressLint
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -45,7 +45,7 @@ class WebViewFragment : BaseFragment(), BackPressDelegate {
         super.onViewCreated(view, savedInstanceState)
 
         val bundle = arguments!!
-        url = bundle.getString(ARG_URL)
+        url = bundle.getString(ARG_URL)!!
         enableJs = bundle.getBoolean(ARG_ENABLE_JS)
         pcAgent = bundle.getBoolean(ARG_PC_AGENT)
 

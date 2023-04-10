@@ -4,19 +4,19 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.TabLayout
-import android.support.v7.widget.ListPopupWindow
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SpinnerAdapter
+import androidx.appcompat.widget.ListPopupWindow
 import com.github.ykrank.androidautodispose.AndroidRxDispose
 import com.github.ykrank.androidlifecycle.event.ActivityEvent
 import com.github.ykrank.androidtools.util.L
 import com.github.ykrank.androidtools.util.RxJavaUtil
 import com.github.ykrank.androidtools.widget.net.WifiBroadcastReceiver
+import com.google.android.material.tabs.TabLayout
 import me.ykrank.s1next.App
 import me.ykrank.s1next.R
 import me.ykrank.s1next.data.api.Api
@@ -27,6 +27,7 @@ import me.ykrank.s1next.view.adapter.SubForumArrayAdapter
 import me.ykrank.s1next.view.event.ThreadTypeChangeEvent
 import me.ykrank.s1next.view.fragment.ThreadListFragment
 import me.ykrank.s1next.view.fragment.ThreadListPagerFragment
+import me.ykrank.s1next.view.page.post.PostListActivity
 import me.ykrank.s1next.widget.track.event.RandomImageTrackEvent
 import me.ykrank.s1next.widget.track.event.ViewForumTrackEvent
 import javax.inject.Inject
@@ -113,7 +114,8 @@ class ThreadListActivity : BaseActivity(), ThreadListPagerFragment.SubForumsCall
                 return true
             }
             R.id.menu_new_thread -> {
-                NewThreadActivity.startNewThreadActivityForResultMessage(this, Integer.parseInt(forum.id))
+                NewThreadActivity.startNewThreadActivityForResultMessage(this, forum.id?.toInt()
+                        ?: 0)
                 return true
             }
             R.id.menu_random_image -> {
@@ -186,7 +188,10 @@ class ThreadListActivity : BaseActivity(), ThreadListPagerFragment.SubForumsCall
                     threadTypes = ArrayList(it)
                     refreshTabLayout()
                 }, {
-                    L.report(it)
+                    val msg = it.message?.trim()
+                    if ("抱歉，您所在的用户组(游客)无法进行此操作" != msg && "抱歉，您尚未登录，没有权限在该版块发帖" != msg) {
+                        L.report(it)
+                    }
                 })
     }
 

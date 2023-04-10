@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.github.ykrank.androidtools.util.ErrorParser
 import com.github.ykrank.androidtools.util.L
 import io.reactivex.exceptions.CompositeException
+import io.rx_cache2.RxCacheException
 import me.ykrank.s1next.R
 import me.ykrank.s1next.data.api.ApiException
 import okhttp3.internal.http2.StreamResetException
@@ -27,8 +28,11 @@ object ErrorUtil : ErrorParser {
 
         while (msg == null && root != null) {
             msg = parseNetError(context, root)
+            if (msg != null) {
+                break
+            }
             val cause: Throwable? = throwable.cause
-            if (cause === null || cause === root) {
+            if (cause == null || cause === root) {
                 break
             }
             root = cause
@@ -46,7 +50,12 @@ object ErrorUtil : ErrorParser {
             is ApiException -> msg = throwable.getLocalizedMessage()
             is JsonProcessingException -> {
                 msg = context.getString(R.string.message_server_data_error)
-                L.report(throwable)
+                val source = throwable.location?.sourceRef
+                if (source is String && source.trimStart().startsWith("<!DOCTYPE html")) {
+                    L.print(throwable)
+                } else {
+                    L.report(throwable)
+                }
             }
             is IOException -> {
                 msg = context.getString(R.string.message_network_error)
@@ -59,12 +68,24 @@ object ErrorUtil : ErrorParser {
                 }
             }
             is CompositeException -> {
+                if (throwable.exceptions.size == 1) {
+                    return parseNetError(context, throwable.exceptions[0])
+                }
+                for (ex in throwable.exceptions) {
+                    if (ex is RxCacheException) {
+                        return context.getString(R.string.message_network_error)
+                    }
+                }
                 for (ex in throwable.exceptions) {
                     val exMsg = parseNetError(context, ex)
                     if (exMsg != null) {
-                        msg = exMsg
-                        break
+                        return exMsg
                     }
+                }
+                for (ex in throwable.exceptions) {
+                    L.leaveMsg("CompositeException")
+                    L.leaveMsg(ex)
+                    L.report(ex)
                 }
             }
         }
@@ -78,6 +99,20 @@ object ErrorUtil : ErrorParser {
             is SocketTimeoutException -> return true
             is StreamResetException -> return true
             is SSLException -> return true
+            is ApiException.ApiServerException -> {
+                val msg = throwable.message
+                if (msg != null) {
+                    if (msg.contains("您需要绑定", false) ||
+                            msg.contains("您尚未登录", false) ||
+                            msg.contains("您需要升级所在的用户组", false) ||
+                            msg.contains("论坛维护中", false) ||
+                            msg.contains("抱歉", false)) {
+                        return true
+                    }
+                    if (msg.trim() == "HTTP 503") return true
+
+                }
+            }
         }
         return false
     }

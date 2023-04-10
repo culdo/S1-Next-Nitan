@@ -1,6 +1,6 @@
 package me.ykrank.s1next.data.pref
 
-import android.support.annotation.IntDef
+import androidx.annotation.IntDef
 import com.bumptech.glide.load.Key
 import com.bumptech.glide.signature.ObjectKey
 import com.github.ykrank.androidtools.util.DateUtil
@@ -26,6 +26,9 @@ class DownloadPreferencesManager(private val mPreferencesProvider: DownloadPrefe
     val isHighResolutionAvatarsDownload: Boolean
         get() = AvatarResolutionStrategy.isHigherResolutionDownload(mPreferencesProvider.avatarResolutionStrategyIndex, mWifi.isWifiEnabled)
 
+    val isAvatarGifEnable: Boolean
+        get() = mPreferencesProvider.avatarGifEnable
+
     val avatarCacheInvalidationIntervalSignature: Key
         get() = AvatarCacheInvalidationInterval.getSignature(mPreferencesProvider.avatarCacheInvalidationInterval)
 
@@ -34,6 +37,12 @@ class DownloadPreferencesManager(private val mPreferencesProvider: DownloadPrefe
      */
     val isImagesDownload: Boolean
         get() = DownloadStrategyInternal.isDownload(mPreferencesProvider.imagesDownloadStrategyIndex, mWifi.isWifiEnabled)
+
+    val multiThreadDownload: Boolean
+        get() = mPreferencesProvider.multiThreadDownload
+
+    val postMaxImageShow: Int
+        get() = mPreferencesProvider.postMaxImageShow
 
     /**
      * Checks whether we need to monitor the Wi-Fi status.

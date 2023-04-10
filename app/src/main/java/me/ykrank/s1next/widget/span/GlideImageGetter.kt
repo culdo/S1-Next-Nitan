@@ -1,34 +1,35 @@
 package me.ykrank.s1next.widget.span
 
-import android.graphics.Rect
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.support.annotation.AnyThread
-import android.support.annotation.MainThread
-import android.support.v4.view.ViewCompat
-import android.text.*
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.text.Html
+import android.text.TextUtils
+import android.text.style.ImageSpan
 import android.view.View
 import android.webkit.URLUtil
 import android.widget.TextView
+import androidx.annotation.AnyThread
+import androidx.annotation.MainThread
+import androidx.core.view.ViewCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.Request
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
-import com.bumptech.glide.request.transition.Transition
 import com.github.ykrank.androidautodispose.AndroidRxDispose
 import com.github.ykrank.androidlifecycle.event.ViewEvent
 import com.github.ykrank.androidtools.util.L
 import com.github.ykrank.androidtools.util.LooperUtil
 import com.github.ykrank.androidtools.widget.glide.downsamplestrategy.*
 import com.github.ykrank.androidtools.widget.glide.transformations.FitOutWidthBitmapTransformation
-import com.github.ykrank.androidtools.widget.glide.viewtarget.CustomViewTarget
 import com.github.ykrank.androidtools.widget.track.DataTrackAgent
 import com.uber.autodispose.SingleScoper
 import io.reactivex.Single
@@ -56,15 +57,26 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
     private val requestManager: RequestManager
     private val imageGetterScoper: SingleScoper<RequestBuilder<Drawable>>
     private val trackAgent: DataTrackAgent
+    private val handler: Handler
+    private var lastValidateSpanTime = 0L
 
     /**
      * Manage target to clear target if textview re bind
      */
-    private val animatableTargetHashMap = WeakHashMap<Animatable, ImageGetterViewTarget>()
-    private var serial = 0
+    internal val animateTargetHashMap = WeakHashMap<Animatable, ImageGetterViewTarget>()
+    internal var serial = 0
+    private val cachedImageSpanRefreshMsg = TreeSet<ImageSpanChangedMsg>()
 
     private val density: Float by lazy {
         mTextView.context.resources.displayMetrics.density
+    }
+    private val emoticonAssetRequestOptions by lazy {
+        RequestOptions()
+                .error(R.mipmap.unknown_image)
+                //Do not cache asset
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                //Original size because gif could not downSample
+                .downsample(SizeMultiplierDownSampleStrategy(1.0f))
     }
     private val emoticonRequestOptions by lazy {
         RequestOptions()
@@ -99,18 +111,50 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
         // add this listener in order to clean any pending images loading
         // and set drawable callback tag to null when detached from window
         mTextView.addOnAttachStateChangeListener(this)
+
+        handler = Handler(Looper.getMainLooper(), Handler.Callback {
+            when (it.what) {
+                Msg_Invalidate_Span -> {
+                    val time = System.currentTimeMillis()
+                    val imageSpanChangedMsg: ImageSpanChangedMsg? = it.obj as ImageSpanChangedMsg?
+                    if (imageSpanChangedMsg != null) {
+                        cachedImageSpanRefreshMsg.add(imageSpanChangedMsg)
+                        it.target.removeMessages(Msg_Invalidate_Span_Late)
+                        it.target.sendEmptyMessageDelayed(Msg_Invalidate_Span_Late,
+                                lastValidateSpanTime + SpanInvalidateColdTime - time)
+                    }
+
+                    return@Callback true
+                }
+                Msg_Invalidate_Span_Late -> {
+                    lastValidateSpanTime = System.currentTimeMillis()
+
+                    if (cachedImageSpanRefreshMsg.isNotEmpty()) {
+                        val imageSpanChangedMsg: ImageSpanChangedMsg = cachedImageSpanRefreshMsg.pollFirst()
+                        ImageGetterViewTarget.refreshLayout(imageSpanChangedMsg, mTextView)
+                    }
+                    if (cachedImageSpanRefreshMsg.isNotEmpty()) {
+                        it.target.sendEmptyMessageDelayed(Msg_Invalidate_Span_Late,
+                                lastValidateSpanTime + SpanInvalidateColdTime - System.currentTimeMillis())
+                    }
+                    return@Callback true
+                }
+            }
+            false
+        })
+
     }
 
     @MainThread
     private fun invalidate() {
         LooperUtil.enforceOnMainThread()
         serial += 1
-        for (anim in animatableTargetHashMap.keys) {
+        for (anim in animateTargetHashMap.keys) {
             // Perhaps this gif could not recycle immediate
             anim.stop()
-            requestManager.clear(animatableTargetHashMap[anim])
+            requestManager.clear(animateTargetHashMap[anim])
         }
-        animatableTargetHashMap.clear()
+        animateTargetHashMap.clear()
     }
 
     /**
@@ -131,6 +175,9 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
         if (emoticonName == null && !URLUtil.isNetworkUrl(url)) {
             url = Api.BASE_URL + url
         }
+        if(url?.startsWith("https://") == true){
+            url = url.replaceFirst("https://", "http://")
+        }
         if (emoticonName != null) {
             //Scale
             urlDrawable = UrlDrawable(url, density)
@@ -141,7 +188,7 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
 
             val glideRequestBuilder = requestManager
                     .load(Uri.parse(EmoticonFactory.ASSET_PATH_EMOTICON + emoticonName))
-                    .apply(emoticonRequestOptions)
+                    .apply(emoticonAssetRequestOptions)
                     .listener(object : RequestListener<Drawable> {
                         override fun onLoadFailed(e: GlideException?, model: Any, target: Target<Drawable>, isFirstResource: Boolean): Boolean {
                             L.leaveMsg("Exception in emoticon uri:$model")
@@ -165,6 +212,7 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
         }
 
         urlDrawable = UrlDrawable(url)
+
         val imageGetterViewTarget = ImageGetterViewTarget(this, mTextView,
                 urlDrawable, serial)
 
@@ -199,14 +247,19 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
                 }, { L.report(it) })
     }
 
+    fun sendSpanChangedMsg(imageSpan: ImageSpan, priority: Int) {
+        Message.obtain(handler, Msg_Invalidate_Span, ImageSpanChangedMsg(imageSpan, priority)).sendToTarget()
+    }
+
     override fun onViewAttachedToWindow(v: View) {
-        for (anim in animatableTargetHashMap.keys) {
+        for (anim in animateTargetHashMap.keys) {
             anim.start()
         }
     }
 
     override fun onViewDetachedFromWindow(v: View) {
-        for (anim in animatableTargetHashMap.keys) {
+        handler.removeCallbacksAndMessages(null)
+        for (anim in animateTargetHashMap.keys) {
             anim.stop()
         }
     }
@@ -217,16 +270,17 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
      */
     override fun invalidateDrawable(who: Drawable) {
         if (who is Animatable) {
-            val target = animatableTargetHashMap[who] ?: return
+            val target = animateTargetHashMap[who] ?: return
             if (target.serial == serial) {
                 if (ViewCompat.isAttachedToWindow(mTextView)) {
+//                    Log.d("GlideImage", "invalidate ${Integer.toHexString(mTextView.hashCode())}")
                     mTextView.invalidate()
                 } else {
                     (who as Animatable).stop()
                 }
             } else {
                 requestManager.clear(target)
-                animatableTargetHashMap.remove(who)
+                animateTargetHashMap.remove(who)
             }
         }
     }
@@ -234,171 +288,6 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
     override fun scheduleDrawable(who: Drawable, what: Runnable, `when`: Long) {}
 
     override fun unscheduleDrawable(who: Drawable, what: Runnable) {}
-
-    private class ImageGetterViewTarget constructor(private val mGlideImageGetter: GlideImageGetter, view: TextView, val mDrawable: UrlDrawable, val serial: Int)
-        : CustomViewTarget<TextView, Drawable>(view) {
-
-        private var mRequest: Request? = null
-
-        override fun onResourceLoading(placeholder: Drawable?) {
-            super.onResourceLoading(placeholder)
-            L.l("onResourceLoading:" + mDrawable.url)
-            if (placeholder != null) {
-                setDrawable(placeholder)
-            }
-        }
-
-        override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-            L.l("onResourceReady:" + mDrawable.url)
-            if (!checkTextViewValidate()) {
-                return
-            }
-            val textView = getView()
-
-            setDrawable(resource)
-            if (resource is Animatable) {
-                val callback = textView.getTag(
-                        R.id.tag_drawable_callback) as Drawable.Callback?
-                // note: not sure whether callback would be null sometimes
-                // when this Drawable' host view is detached from View
-                if (callback != null) {
-                    mGlideImageGetter.animatableTargetHashMap[resource] = this
-                    // set callback to drawable in order to
-                    // signal its container to be redrawn
-                    // to show the animated GIF
-                    mDrawable.callback = callback
-                    (resource as Animatable).start()
-                }
-            }
-        }
-
-        override fun onLoadFailed(errorDrawable: Drawable?) {
-            L.l("onLoadFailed:" + mDrawable.url)
-            if (checkTextViewValidate()) {
-                return
-            }
-            if (errorDrawable != null) {
-                setDrawable(errorDrawable)
-            }
-        }
-
-        override fun onResourceCleared(placeholder: Drawable?) {
-            mDrawable.drawable?.let {
-                if (it is Animatable) {
-                    it.stop()
-                }
-            }
-            mDrawable.drawable = null
-        }
-
-        override fun onStart() {
-            mDrawable.drawable?.let {
-                if (it is Animatable) {
-                    it.start()
-                }
-            }
-        }
-
-        override fun onStop() {
-            mDrawable.drawable?.let {
-                if (it is Animatable) {
-                    it.stop()
-                }
-            }
-        }
-
-        override fun onDestroy() {
-            mGlideImageGetter.invalidate()
-        }
-
-        private fun checkTextViewValidate(): Boolean {
-            if (serial != mGlideImageGetter.serial) {
-                L.l("serial:" + serial + ",GlideImageGetter serial:" + mGlideImageGetter.serial)
-                return false
-            }
-            return true
-        }
-
-        private fun setDrawable(resource: Drawable) {
-            L.l("setDrawable")
-            // resize this drawable's width & height to fit its container
-            val resWidth = resource.intrinsicWidth
-            val resHeight = resource.intrinsicHeight
-            val width: Int
-            val height: Int
-            val textView = getView()
-            if (textView.width >= resWidth) {
-                width = resWidth
-                height = resHeight
-            } else {
-                width = textView.width
-                height = (resHeight / (resWidth.toFloat() / width)).toInt()
-            }
-
-            val rect = Rect(0, 0, width, height)
-            mDrawable.drawable = resource
-            mDrawable.bounds = rect
-
-            refreshLayout()
-        }
-
-        /**
-         * refresh textView layout after drawable invalidate
-         */
-        private fun refreshLayout() {
-            L.l("refreshLayout start")
-            val imageSpan = mDrawable.imageSpan
-            if (imageSpan == null) {
-                //onResourceReady run before imageSpan init. do nothing
-                L.l("refreshLayout run before imageSpan init")
-                return
-            }
-            val textView = getView()
-            val text = textView.text
-            if (text is SpannableString) {
-                val start = text.getSpanStart(imageSpan)
-                val end = text.getSpanEnd(imageSpan)
-                if (!isSpanValid(start, end)) {
-                    //onResourceReady run before imageSpan add to textView. do nothing
-                    L.l("refreshLayout run before imageSpan add to textView")
-                    return
-                }
-                //Or image overlapping error
-                text.removeSpan(imageSpan)
-                text.setSpan(imageSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            } else {
-                val span = text as SpannableStringBuilder
-                val start = span.getSpanStart(imageSpan)
-                val end = span.getSpanEnd(imageSpan)
-                if (!isSpanValid(start, end)) {
-                    //onResourceReady run before imageSpan add to textView. do nothing
-                    L.l("refreshLayout run before imageSpan add to textView")
-                    return
-                }
-                //Or image overlapping error
-                span.removeSpan(imageSpan)
-                span.setSpan(imageSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            }
-
-            L.l("refreshLayout end")
-        }
-
-
-        private fun isSpanValid(start: Int, end: Int): Boolean {
-            return start >= 0 && end >= 0
-        }
-
-        /**
-         * See https://github.com/bumptech/glide/issues/550#issuecomment-123693051
-         */
-        override fun getRequest(): Request? {
-            return mRequest
-        }
-
-        override fun setRequest(request: Request?) {
-            this.mRequest = request
-        }
-    }
 
     companion object {
         /**
@@ -409,6 +298,9 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
          * Too big image make app looks like blocked
          */
         private const val MaxImageSize = 6400
+        private const val Msg_Invalidate_Span = 2
+        private const val Msg_Invalidate_Span_Late = 3
+        const val SpanInvalidateColdTime = 100
 
         @MainThread
         operator fun get(textView: TextView): GlideImageGetter {
@@ -421,6 +313,27 @@ class GlideImageGetter protected constructor(private val mTextView: TextView) : 
                 glideImageGetter.invalidate()
                 return glideImageGetter
             }
+        }
+    }
+
+    /**
+     * priority越大越优先
+     */
+    class ImageSpanChangedMsg(val imageSpan: ImageSpan, private val priority: Int) : Comparable<ImageSpanChangedMsg> {
+
+        override fun compareTo(other: ImageSpanChangedMsg): Int {
+            if (imageSpan === other.imageSpan){
+                return 0
+            }
+            val compare = other.priority - priority
+            if (compare != 0) {
+                return compare
+            }
+            return other.hashCode() - imageSpan.hashCode()
+        }
+
+        override fun toString(): String {
+            return "ImageSpanChangedMsg(imageSpan=$imageSpan, priority=$priority)"
         }
     }
 }

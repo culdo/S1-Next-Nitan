@@ -2,8 +2,9 @@ package me.ykrank.s1next.widget.glide;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.GlideBuilder;
@@ -51,9 +52,19 @@ public final class S1NextGlideModule extends AppGlideModule {
         //https://muyangmin.github.io/glide-docs-cn/doc/hardwarebitmaps.html
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
             requestOptions = requestOptions.disallowHardwareConfig();
-    }
+        }
 
         builder.setDefaultRequestOptions(requestOptions);
+
+//        int bitmapPoolSizeBytes = 1024 * 1024 * 0; // 0mb
+//        int memoryCacheSizeBytes = 1024 * 1024 * 0; // 0mb
+//        builder.setMemoryCache(new LruResourceCache(memoryCacheSizeBytes));
+//        builder.setBitmapPool(new LruBitmapPool(bitmapPoolSizeBytes));
+
+        //兼容了华为机型上，Register too many Broadcast Receivers 的问题
+        if (NoConnectivityMonitorFactory.needDisableNetCheck()) {
+            builder.setConnectivityMonitorFactory(new NoConnectivityMonitorFactory());
+        }
     }
 
     @Override

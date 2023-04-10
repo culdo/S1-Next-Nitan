@@ -1,8 +1,8 @@
 package me.ykrank.s1next.view.fragment
 
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.text.TextUtils
 import android.view.*
 import android.widget.EditText
@@ -17,7 +17,6 @@ import me.ykrank.s1next.data.api.S1Service
 import me.ykrank.s1next.data.api.model.RatePreInfo
 import me.ykrank.s1next.databinding.FragmentNewRateBinding
 import me.ykrank.s1next.databinding.ItemRateReasonBinding
-import me.ykrank.s1next.util.ErrorUtil
 import me.ykrank.s1next.view.adapter.SimpleSpinnerAdapter
 import me.ykrank.s1next.view.dialog.requestdialog.RateRequestDialogFragment
 import me.ykrank.s1next.viewmodel.NewRateViewModel
@@ -70,7 +69,7 @@ class NewRateFragment : BaseFragment() {
         refreshData()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater?.inflate(R.menu.fragment_new_rate, menu)
     }
@@ -91,7 +90,7 @@ class NewRateFragment : BaseFragment() {
             itemBinding.root.setOnClickListener { v -> binding.etReason.setText(itemBinding.model) }
         }
 
-        binding.recycleView.layoutManager = LinearLayoutManager(context)
+        binding.recycleView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
         reasonAdapter = SimpleRecycleViewAdapter(context!!, R.layout.item_rate_reason, false, bindViewHolderCallback, null)
         binding.recycleView.adapter = reasonAdapter
     }
@@ -105,19 +104,12 @@ class NewRateFragment : BaseFragment() {
                 .to(AndroidRxDispose.withSingle(this, FragmentEvent.DESTROY))
                 .subscribe({ info ->
                     ratePreInfo = info
-                    if (!TextUtils.isEmpty(info.alertError)) {
-                        reasonAdapter.setHasProgress(false)
-                        info.alertError?.apply {
-                            showRetrySnackbar(this, View.OnClickListener { v -> refreshData() })
-                        }
-                    } else {
-                        binding.model?.info?.set(info)
-                        setSpinner(info.scoreChoices)
-                        setReasonRecycleView(info.reasons)
-                    }
+                    binding.model?.info?.set(info)
+                    setSpinner(info.scoreChoices)
+                    setReasonRecycleView(info.reasons)
                 }, { e ->
                     reasonAdapter.setHasProgress(false)
-                    showRetrySnackbar(ErrorUtil.parse(context!!, e), View.OnClickListener { v -> refreshData() })
+                    showRetrySnackbar(e, View.OnClickListener { v -> refreshData() })
                 }
                 )
     }
@@ -125,6 +117,10 @@ class NewRateFragment : BaseFragment() {
     private fun setSpinner(choices: List<String>) {
         val spinnerAdapter = SimpleSpinnerAdapter(context!!, choices) { it.toString() }
         binding.spinner.adapter = spinnerAdapter
+        var select = choices.indexOf("1")
+        if(select >= 0) {
+            binding.spinner.setSelection(select)
+        }
     }
 
     private fun setReasonRecycleView(reasons: List<String>) {
@@ -141,7 +137,7 @@ class NewRateFragment : BaseFragment() {
             showShortSnackbar(R.string.invalid_score)
             return
         }
-        RateRequestDialogFragment.newInstance(ratePreInfo, score, reason).show(fragmentManager,
+        RateRequestDialogFragment.newInstance(ratePreInfo, score, reason).show(fragmentManager!!,
                 RateRequestDialogFragment.TAG)
     }
 

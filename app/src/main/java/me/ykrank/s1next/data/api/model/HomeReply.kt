@@ -1,6 +1,6 @@
 package me.ykrank.s1next.data.api.model
 
-import com.github.ykrank.androidtools.guava.Objects
+import com.google.common.base.Objects
 import com.github.ykrank.androidtools.ui.adapter.StableIdModel
 import com.github.ykrank.androidtools.ui.adapter.model.DiffSameItem
 import com.github.ykrank.androidtools.util.L
@@ -45,11 +45,7 @@ class HomeReply : DiffSameItem, HomeReplyWebWrapper.HomeReplyItem, StableIdModel
         fun fromHtmlElement(element: Element): HomeReply? {
             var reply: HomeReply? = null
             try {
-                val tdReplies = element.children()
-                if (tdReplies.size < 1) {
-                    return null
-                }
-                val tdReply = tdReplies.first()
+                val tdReply = element.children().first() ?: return null
                 val elesReply = tdReply.children()
                 if (elesReply.size < 3) {
                     return null

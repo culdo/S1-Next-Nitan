@@ -2,24 +2,27 @@ package me.ykrank.s1next.view.activity
 
 import android.app.Activity
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.NavUtils
-import android.support.v4.app.TaskStackBuilder
 import android.view.View
 import android.widget.AdapterView
-import com.github.ykrank.androidtools.guava.Optional
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NavUtils
+import androidx.core.app.TaskStackBuilder
+import androidx.databinding.DataBindingUtil
+import com.github.ykrank.androidautodispose.AndroidRxDispose
+import com.github.ykrank.androidlifecycle.event.ActivityEvent
 import com.github.ykrank.androidtools.util.L
 import com.github.ykrank.androidtools.util.RxJavaUtil
+import com.google.common.base.Optional
 import io.reactivex.Single
 import me.ykrank.s1next.App
 import me.ykrank.s1next.R
-import me.ykrank.s1next.data.pref.ReadProgressPreferencesManager
+import me.ykrank.s1next.data.pref.ReadPreferencesManager
 import me.ykrank.s1next.databinding.ToolbarSpinnerBinding
 import me.ykrank.s1next.view.fragment.ForumFragment
 import me.ykrank.s1next.view.internal.RequestCode
 import me.ykrank.s1next.view.internal.ToolbarDropDownInterface
+import me.ykrank.s1next.view.page.post.PostListActivity
 import me.ykrank.s1next.viewmodel.DropDownItemListViewModel
 import javax.inject.Inject
 
@@ -32,7 +35,7 @@ import javax.inject.Inject
 class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, AdapterView.OnItemSelectedListener {
 
     @Inject
-    internal lateinit var mReadProgressPrefManager: ReadProgressPreferencesManager
+    internal lateinit var mReadPrefManager: ReadPreferencesManager
 
     private var mToolbarSpinnerBinding: ToolbarSpinnerBinding? = null
 
@@ -57,7 +60,7 @@ class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, Adapter
 
             fragment = ForumFragment()
             fragmentManager.beginTransaction().add(R.id.frame_layout, fragment, ForumFragment.TAG)
-                    .commit()
+                .commit()
         } else {
             mSelectedPosition = savedInstanceState.getInt(STATE_SPINNER_SELECTED_POSITION)
             fragment = fragmentManager.findFragmentByTag(ForumFragment.TAG) as ForumFragment
@@ -69,21 +72,18 @@ class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, Adapter
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (fragment == null) {
-            fragment = supportFragmentManager
-                    .findFragmentByTag(ForumFragment.TAG) as ForumFragment
-        }
         fragment.startSwipeRefresh()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == RequestCode.REQUEST_CODE_LOGIN) {
             if (resultCode == Activity.RESULT_OK) {
-                data?.let {
-                    showShortSnackbar(data.getStringExtra(BaseActivity.Companion.EXTRA_MESSAGE))
-                    if (fragment != null) {
-                        fragment.forceSwipeRefresh()
-                    }
+                val msg = data?.getStringExtra(EXTRA_MESSAGE)
+                if (msg != null) {
+                    showShortSnackbar(msg)
+                }
+                if (data != null) {
+                    fragment.forceSwipeRefresh()
                 }
             }
         }
@@ -91,10 +91,10 @@ class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, Adapter
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    public override fun onSaveInstanceState(outState: Bundle?) {
+    public override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
 
-        outState?.putInt(STATE_SPINNER_SELECTED_POSITION, mSelectedPosition)
+        outState.putInt(STATE_SPINNER_SELECTED_POSITION, mSelectedPosition)
     }
 
     override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
@@ -110,8 +110,10 @@ class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, Adapter
             setTitle("")
 
             // add Spinner to Toolbar
-            binding = DataBindingUtil.inflate<ToolbarSpinnerBinding>(layoutInflater,
-                    R.layout.toolbar_spinner, toolbar.get(), true)
+            binding = DataBindingUtil.inflate<ToolbarSpinnerBinding>(
+                layoutInflater,
+                R.layout.toolbar_spinner, toolbar.get(), true
+            )
             binding.spinner.onItemSelectedListener = this
             // let spinner's parent to handle clicking event in order
             // to increase spinner's clicking area.
@@ -134,14 +136,15 @@ class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, Adapter
 
     private fun restoreFromInterrupt() {
         Single.just(0)
-                .map { Optional.fromNullable(mReadProgressPrefManager.lastReadProgress) }
-                .compose(RxJavaUtil.iOSingleTransformer())
-                .doFinally { mReadProgressPrefManager.saveLastReadProgress(null) }
-                .subscribe({ readProgress ->
-                    if (readProgress.isPresent()) {
-                        PostListActivity.start(this@ForumActivity, readProgress.get())
-                    }
-                }, { L.report(it) })
+            .map { Optional.fromNullable(mReadPrefManager.lastReadProgress) }
+            .compose(RxJavaUtil.iOSingleTransformer())
+            .doFinally { mReadPrefManager.saveLastReadProgress(null) }
+            .to(AndroidRxDispose.withSingle(this, ActivityEvent.DESTROY))
+            .subscribe({ readProgress ->
+                if (readProgress.isPresent()) {
+                    PostListActivity.start(this@ForumActivity, readProgress.get())
+                }
+            }, { L.report(it) })
     }
 
     companion object {
@@ -161,8 +164,8 @@ class ForumActivity : BaseActivity(), ToolbarDropDownInterface.Callback, Adapter
                 // create a new task when navigating up with
                 // a synthesized back stack
                 TaskStackBuilder.create(activity)
-                        .addNextIntentWithParentStack(intent)
-                        .startActivities()
+                    .addNextIntentWithParentStack(intent)
+                    .startActivities()
             } else {
                 // back to ForumActivity (main Activity)
                 NavUtils.navigateUpTo(activity, intent)

@@ -1,12 +1,11 @@
 package me.ykrank.s1next.viewmodel
 
-import android.databinding.Observable
-import android.databinding.ObservableField
-import android.databinding.ObservableInt
-import android.support.v4.app.FragmentActivity
-import android.support.v7.widget.PopupMenu
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.widget.PopupMenu
+import androidx.databinding.Observable
+import androidx.databinding.ObservableField
+import androidx.databinding.ObservableInt
 import com.github.ykrank.androidtools.util.ContextUtils
 import com.github.ykrank.androidtools.util.L
 import com.github.ykrank.androidtools.widget.RxBus
@@ -16,12 +15,12 @@ import me.ykrank.s1next.data.api.Api
 import me.ykrank.s1next.data.api.model.Post
 import me.ykrank.s1next.data.api.model.Thread
 import me.ykrank.s1next.data.api.model.Vote
-import me.ykrank.s1next.view.activity.AppPostListActivity
-import me.ykrank.s1next.view.activity.PostListActivity
 import me.ykrank.s1next.view.activity.UserHomeActivity
 import me.ykrank.s1next.view.activity.WebViewActivity
 import me.ykrank.s1next.view.event.*
 import me.ykrank.s1next.view.internal.BlacklistMenuAction
+import me.ykrank.s1next.view.page.app.AppPostListActivity
+import me.ykrank.s1next.view.page.post.PostListActivity
 import me.ykrank.s1next.widget.glide.AvatarUrlsCache
 
 class PostViewModel(private val rxBus: RxBus, private val user: User) {
@@ -55,7 +54,7 @@ class PostViewModel(private val rxBus: RxBus, private val user: User) {
                 //Clear avatar false cache
                 AvatarUrlsCache.clearUserAvatarCache(authorId)
                 //个人主页
-                UserHomeActivity.start(v.context as FragmentActivity, authorId, authorName, v)
+                UserHomeActivity.start(v.context as androidx.fragment.app.FragmentActivity, authorId, authorName, v)
             }
         }
     }
@@ -76,7 +75,7 @@ class PostViewModel(private val rxBus: RxBus, private val user: User) {
                                 BlacklistMenuAction.removeBlacklist(rxBus, authorIdInt, authorName)
                             } else {
                                 val context = ContextUtils.getBaseContext(v.context)
-                                if (context is FragmentActivity) {
+                                if (context is androidx.fragment.app.FragmentActivity) {
                                     BlacklistMenuAction.addBlacklist(context, authorIdInt, authorName)
                                 } else {
                                     L.report(IllegalStateException("抹布时头像Context不为FragmentActivity$context"))
@@ -181,8 +180,8 @@ class PostViewModel(private val rxBus: RxBus, private val user: User) {
     fun onAppPostClick(v: View) {
         val p = post.get()
         val t = thread.get()
-        if (p != null && t != null) {
-            AppPostListActivity.start(v.context, t, p.getPage(), p.id.toString())
+        if (p != null && t?.id != null) {
+            AppPostListActivity.start(v.context, t.id!!, p.getPage(), p.id.toString())
         }
     }
 

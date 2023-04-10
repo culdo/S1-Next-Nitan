@@ -1,8 +1,8 @@
 package me.ykrank.s1next.view.fragment
 
 import android.content.Context
-import android.support.annotation.CallSuper
-import android.support.v4.view.ViewPager
+import androidx.annotation.CallSuper
+import androidx.viewpager.widget.ViewPager
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -27,19 +27,19 @@ abstract class BaseViewPagerFragment : LibBaseViewPagerFragment() {
     @Inject
     internal lateinit var mUser: User
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
         App.appComponent.inject(this)
     }
 
     @CallSuper
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.fragment_view_pager, menu)
 
     }
 
-    override fun findMenuPageJump(menu: Menu?): MenuItem? {
-        return menu?.findItem(R.id.menu_page_jump)
+    override fun findMenuPageJump(menu: Menu): MenuItem? {
+        return menu.findItem(R.id.menu_page_jump)
     }
 
 

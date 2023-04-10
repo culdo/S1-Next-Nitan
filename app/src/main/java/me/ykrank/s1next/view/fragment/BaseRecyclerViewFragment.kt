@@ -1,11 +1,11 @@
 package me.ykrank.s1next.view.fragment
 
-import android.databinding.DataBindingUtil
 import android.os.Bundle
-import android.support.annotation.CallSuper
-import android.support.v4.widget.SwipeRefreshLayout
 import android.text.TextUtils
 import android.view.*
+import androidx.annotation.CallSuper
+import androidx.databinding.DataBindingUtil
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.github.ykrank.androidtools.ui.LibBaseRecyclerViewFragment
 import com.github.ykrank.androidtools.ui.internal.LoadingViewModelBindingDelegate
 import com.github.ykrank.androidtools.ui.vm.LoadingViewModel
@@ -56,18 +56,18 @@ abstract class BaseRecyclerViewFragment<D> : LibBaseRecyclerViewFragment<D>() {
     }
 
     @CallSuper
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.fragment_base, menu)
     }
 
     @CallSuper
-    override fun onPrepareOptionsMenu(menu: Menu?) {
+    override fun onPrepareOptionsMenu(menu: Menu) {
         // Disables the refresh menu when loading data.
         menu?.findItem(R.id.menu_refresh)?.isEnabled = !isLoading
     }
 
     @CallSuper
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item?.itemId) {
             R.id.menu_refresh -> {
                 startSwipeRefresh()
@@ -125,7 +125,7 @@ abstract class BaseRecyclerViewFragment<D> : LibBaseRecyclerViewFragment<D>() {
      *
      * @param result The data's result we get.
      */
-    protected fun consumeResult(result: Result?) {
+    protected open fun consumeResult(result: Result?) {
         if (isAdded && userVisibleHint) {
             if (result != null) {
                 val message = result.message

@@ -1,12 +1,12 @@
 package me.ykrank.s1next.binding;
 
 import android.content.Context;
-import android.databinding.BindingAdapter;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.support.annotation.Nullable;
+import android.os.Build;
 import android.text.Html;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
@@ -18,6 +18,11 @@ import android.view.TouchDelegate;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.databinding.BindingAdapter;
+
+import com.github.ykrank.androidautodispose.AndroidRxDispose;
+import com.github.ykrank.androidlifecycle.event.ViewEvent;
 import com.github.ykrank.androidtools.util.L;
 import com.github.ykrank.androidtools.util.ResourceUtil;
 import com.github.ykrank.androidtools.util.RxJavaUtil;
@@ -38,7 +43,10 @@ import me.ykrank.s1next.data.api.model.Post;
 import me.ykrank.s1next.data.api.model.Thread;
 import me.ykrank.s1next.data.db.dbmodel.History;
 import me.ykrank.s1next.data.pref.ThemeManager;
-import me.ykrank.s1next.widget.span.*;
+import me.ykrank.s1next.widget.span.GlideImageGetter;
+import me.ykrank.s1next.widget.span.HtmlCompat;
+import me.ykrank.s1next.widget.span.QuoteSpanKt;
+import me.ykrank.s1next.widget.span.TagHandler;
 import okio.BufferedSource;
 import okio.Okio;
 import okio.Source;
@@ -159,8 +167,12 @@ public final class TextViewBindingAdapter {
     }
 
     @BindingAdapter({"reply"})
-    public static void setReply(TextView textView, AppPost post) {
+    public static void setReply(TextView textView, AppPost oPost, AppPost post) {
+        if (oPost == post) {
+            return;
+        }
         if (post == null) {
+            textView.setText("");
             return;
         }
         if (post.getHide()) {
@@ -174,12 +186,20 @@ public final class TextViewBindingAdapter {
             return;
         }
 
-        setHtmlWithImage(textView, post.getMessage());
+        String oMsg = null;
+        if (oPost != null) {
+            oMsg = oPost.getMessage();
+        }
+        setHtmlWithImage(textView, oMsg, post.getMessage());
     }
 
     @BindingAdapter({"reply"})
-    public static void setReply(TextView textView, Post post) {
+    public static void setReply(TextView textView, Post oPost, Post post) {
+        if (oPost == post) {
+            return;
+        }
         if (post == null) {
+            textView.setText("");
             return;
         }
         if (post.getHide() != Post.Hide_Normal) {
@@ -198,23 +218,37 @@ public final class TextViewBindingAdapter {
             ViewUtil.concatWithTwoSpacesForRtlSupport(textView, text);
             return;
         }
+        String oReply = null;
         if (post.isTrade()) {
-            setHtmlWithImage(textView, post.getExtraHtml());
+            if (oPost != null) {
+                oReply = oPost.getExtraHtml();
+            }
+            setHtmlWithImage(textView, oReply, post.getExtraHtml());
         } else {
-            setHtmlWithImage(textView, post.getReply());
+            if (oPost != null) {
+                oReply = oPost.getReply();
+            }
+            setHtmlWithImage(textView, oReply, post.getReply());
         }
     }
 
     @BindingAdapter({"imgHtml"})
-    public static void setHtmlWithImage(TextView textView, @Nullable String html) {
+    public static void setHtmlWithImage(TextView textView, @Nullable String oHtml, @Nullable String html) {
+        if (TextUtils.equals(oHtml, html)) {
+            return;
+        }
         if (TextUtils.isEmpty(html)) {
             textView.setText(null);
         } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                textView.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+            }
             // use GlideImageGetter to show images in TextView
             //noinspection deprecation
             Single.just(GlideImageGetter.Companion.get(textView))
-                    .map(f -> QuoteSpanKt.replaceQuoteSpans(HtmlCompat.fromHtml(html, f, new TagHandler()), textView.getContext()))
+                    .map(f -> QuoteSpanKt.replaceQuoteSpans(HtmlCompat.fromHtml(html, f, new TagHandler(textView)), textView.getContext()))
                     .compose(RxJavaUtil.computationSingleTransformer())
+                    .to(AndroidRxDispose.withSingle(textView, ViewEvent.DESTROY))
                     .subscribe(textView::setText, L::report);
         }
     }
@@ -227,6 +261,7 @@ public final class TextViewBindingAdapter {
             //noinspection deprecation
             Single.fromCallable(() -> QuoteSpanKt.replaceQuoteSpans(HtmlCompat.fromHtml(html), textView.getContext()))
                     .compose(RxJavaUtil.computationSingleTransformer())
+                    .to(AndroidRxDispose.withSingle(textView, ViewEvent.DESTROY))
                     .subscribe(textView::setText, L::report);
         }
     }

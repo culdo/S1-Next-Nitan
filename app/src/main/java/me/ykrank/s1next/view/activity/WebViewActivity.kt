@@ -3,7 +3,7 @@ package me.ykrank.s1next.view.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import androidx.fragment.app.Fragment
 import me.ykrank.s1next.R
 import me.ykrank.s1next.view.fragment.WebViewFragment
 import me.ykrank.s1next.view.internal.BackPressDelegate
@@ -20,7 +20,7 @@ class WebViewActivity : BaseActivity() {
         setContentView(R.layout.activity_base_without_drawer)
 
         if (savedInstanceState == null) {
-            val fragment = WebViewFragment.getInstance(intent.getStringExtra(ARG_URL),
+            val fragment = WebViewFragment.getInstance(intent.getStringExtra(ARG_URL)!!,
                     intent.getBooleanExtra(ARG_ENABLE_JS, false),
                     intent.getBooleanExtra(ARG_PC_AGENT, false))
             supportFragmentManager.beginTransaction()

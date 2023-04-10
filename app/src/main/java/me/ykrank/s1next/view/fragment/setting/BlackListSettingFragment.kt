@@ -1,9 +1,10 @@
 package me.ykrank.s1next.view.fragment.setting
 
 import android.app.Activity
+import android.content.DialogInterface
 import android.content.Intent
 import android.database.Cursor
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
 import android.view.*
 import android.widget.AbsListView
@@ -21,11 +22,13 @@ import me.ykrank.s1next.view.activity.DarkRoomActivity
 import me.ykrank.s1next.view.activity.SettingsActivity
 import me.ykrank.s1next.view.adapter.BlackListCursorListViewAdapter
 import me.ykrank.s1next.view.dialog.BlacklistDialogFragment
+import me.ykrank.s1next.view.dialog.LoadBlackListFromWebDialogFragment
+import me.ykrank.s1next.view.dialog.LoginPromptDialogFragment
 import me.ykrank.s1next.view.fragment.BaseFragment
 import me.ykrank.s1next.view.internal.RequestCode
 import java.util.*
 
-class BlackListSettingFragment : BaseFragment() {
+class BlackListSettingFragment : BaseFragment(), DialogInterface.OnDismissListener {
 
     private lateinit var mListView: ListView
     private lateinit var mListViewAdapter: BlackListCursorListViewAdapter
@@ -68,7 +71,7 @@ class BlackListSettingFragment : BaseFragment() {
                     }
                     val dialogFragment1 = BlacklistDialogFragment.newInstance(blackList)
                     dialogFragment1.setTargetFragment(this@BlackListSettingFragment, RequestCode.REQUEST_CODE_BLACKLIST)
-                    dialogFragment1.show(fragmentManager, BlackListSettingFragment::class.java.name)
+                    dialogFragment1.show(fragmentManager!!, BlackListSettingFragment::class.java.name)
                     return true
                 }
                 R.id.menu_delete -> {
@@ -129,9 +132,9 @@ class BlackListSettingFragment : BaseFragment() {
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.fragment_blacklist, menu)
-        menu?.findItem(R.id.menu_refresh)?.isEnabled = true
+        menu.findItem(R.id.menu_refresh)?.isEnabled = true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -156,8 +159,21 @@ class BlackListSettingFragment : BaseFragment() {
                 }
                 return true
             }
+            R.id.menu_load_from_web -> {
+                childFragmentManager.apply {
+                    if (!LoginPromptDialogFragment.showLoginPromptDialogIfNeeded(this, mUser)) {
+                        val dialogFragment = LoadBlackListFromWebDialogFragment.newInstance()
+                        dialogFragment.show(this, LoadBlackListFromWebDialogFragment.TAG)
+                    }
+                }
+                return true
+            }
             else -> return super.onOptionsItemSelected(item)
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface?) {
+        mListViewAdapter.notifyDataSetChanged()
     }
 
     /**
@@ -197,7 +213,7 @@ class BlackListSettingFragment : BaseFragment() {
     private fun add() {
         val dialogFragment = BlacklistDialogFragment.newInstance(null)
         dialogFragment.setTargetFragment(this@BlackListSettingFragment, RequestCode.REQUEST_CODE_BLACKLIST)
-        dialogFragment.show(fragmentManager, BlackListSettingFragment::class.java.name)
+        dialogFragment.show(fragmentManager!!, BlackListSettingFragment::class.java.name)
     }
 
     companion object {

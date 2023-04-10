@@ -2,7 +2,6 @@ package me.ykrank.s1next.view.fragment
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
 import android.view.View
 import com.github.ykrank.androidautodispose.AndroidRxDispose
 import com.github.ykrank.androidlifecycle.event.FragmentEvent
@@ -14,8 +13,10 @@ import io.rx_cache2.EvictDynamicKeyGroup
 import me.ykrank.s1next.App
 import me.ykrank.s1next.data.api.model.Forum
 import me.ykrank.s1next.data.api.model.wrapper.ThreadsWrapper
+import me.ykrank.s1next.data.pref.GeneralPreferencesManager
 import me.ykrank.s1next.util.JsonUtil
 import me.ykrank.s1next.view.adapter.ThreadRecyclerViewAdapter
+import me.ykrank.s1next.view.event.PostDisableStickyChangeEvent
 import me.ykrank.s1next.view.event.ThreadTypeChangeEvent
 import me.ykrank.s1next.view.fragment.ThreadListPagerFragment.PagerCallback
 import me.ykrank.s1next.view.fragment.ThreadListPagerFragment.SubForumsCallback
@@ -33,6 +34,9 @@ class ThreadListPagerFragment : BaseRecyclerViewFragment<ThreadsWrapper>() {
     @Inject
     internal lateinit var mRxBus: RxBus
 
+    @Inject
+    internal lateinit var mGeneralPreferencesManager: GeneralPreferencesManager
+
     private var mForumId: String? = null
     private var mTypeId: String? = null
     private var mPageNum: Int = 0
@@ -42,7 +46,7 @@ class ThreadListPagerFragment : BaseRecyclerViewFragment<ThreadsWrapper>() {
     private var mPagerCallback: PagerCallback? = null
     private var mSubForumsCallback: SubForumsCallback? = null
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         super.onAttach(context)
 
         mSubForumsCallback = context as SubForumsCallback?
@@ -59,7 +63,7 @@ class ThreadListPagerFragment : BaseRecyclerViewFragment<ThreadsWrapper>() {
 
         val recyclerView = recyclerView
         val activity = activity
-        recyclerView.layoutManager = LinearLayoutManager(activity)
+        recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(activity)
         mRecyclerAdapter = ThreadRecyclerViewAdapter(activity, mForumId)
         recyclerView.adapter = mRecyclerAdapter
     }
@@ -77,6 +81,12 @@ class ThreadListPagerFragment : BaseRecyclerViewFragment<ThreadsWrapper>() {
                         mTypeId = it.typeId
                         startSwipeRefresh()
                     }
+                }
+        mRxBus.get()
+                .ofType(PostDisableStickyChangeEvent::class.java)
+                .to(AndroidRxDispose.withObservable(this, FragmentEvent.DESTROY))
+                .subscribe {
+                    startSwipeRefresh()
                 }
     }
 
@@ -97,7 +107,14 @@ class ThreadListPagerFragment : BaseRecyclerViewFragment<ThreadsWrapper>() {
         } else {
             mS1Service.getThreadsWrapper(mForumId, mTypeId, mPageNum)
         }
-        return source.compose(JsonUtil.jsonSingleTransformer(ThreadsWrapper::class.java))
+        var result = source.compose(JsonUtil.jsonSingleTransformer(ThreadsWrapper::class.java))
+        if (mGeneralPreferencesManager.isPostDisableSticky) {
+            result = result.map { threadsWrapper ->
+                threadsWrapper.data.threadList = threadsWrapper.data.threadList.filter { it.displayOrder == 0 }
+                threadsWrapper
+            }
+        }
+        return result
     }
 
     override fun onNext(data: ThreadsWrapper) {

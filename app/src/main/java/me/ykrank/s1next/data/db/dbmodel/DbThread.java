@@ -2,9 +2,9 @@ package me.ykrank.s1next.data.db.dbmodel;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
-import com.github.ykrank.androidtools.guava.Objects;
+import com.google.common.base.Objects;
 
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;

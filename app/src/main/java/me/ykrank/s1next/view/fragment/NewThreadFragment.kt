@@ -1,6 +1,6 @@
 package me.ykrank.s1next.view.fragment
 
-import android.databinding.DataBindingUtil
+import androidx.databinding.DataBindingUtil
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -84,7 +84,7 @@ class NewThreadFragment : BasePostFragment() {
         }
 
         NewThreadRequestDialogFragment.newInstance(mForumId, typeId, title, message, cacheKey)
-                .show(fragmentManager, NewThreadRequestDialogFragment.TAG)
+                .show(fragmentManager!!, NewThreadRequestDialogFragment.TAG)
 
         return true
     }

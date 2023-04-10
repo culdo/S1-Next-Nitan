@@ -3,7 +3,7 @@ package me.ykrank.s1next.view.fragment
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.support.v7.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -39,12 +39,12 @@ class ForumFragment : BaseRecyclerViewFragment<ForumGroupsWrapper>(), ToolbarDro
         leavePageMsg("ForumFragment")
 
         val recyclerView = recyclerView
-        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
         mRecyclerAdapter = ForumRecyclerViewAdapter(activity)
         recyclerView.adapter = mRecyclerAdapter
     }
 
-    override fun onAttach(context: Context?) {
+    override fun onAttach(context: Context) {
         App.appComponent.inject(this)
         super.onAttach(context)
 
@@ -57,12 +57,12 @@ class ForumFragment : BaseRecyclerViewFragment<ForumGroupsWrapper>(), ToolbarDro
         mToolbarCallback = null
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.fragment_forum, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item?.itemId) {
             R.id.menu_browser -> {
                 IntentUtil.startViewIntentExcludeOurApp(context, Uri.parse(Api.BASE_URL))

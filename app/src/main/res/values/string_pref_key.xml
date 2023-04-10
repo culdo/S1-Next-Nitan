@@ -6,8 +6,9 @@
     <string name="pref_key_signature" translatable="false">pref_key_signature</string>
     <string name="pref_key_downloads" translatable="false">pref_key_downloads</string>
     <string name="pref_key_blacklists" translatable="false">pref_key_blacklists</string>
-    <string name="pref_key_post_read_progress" translatable="false">pref_key_post_read_progress</string>
+    <string name="pref_key_post_read" translatable="false">pref_key_post_read_progress</string>
     <string name="pref_key_backup" translatable="false">pref_key_backup</string>
+    <string name="pref_key_check_update" translatable="false">pref_key_check_update</string>
     <!-- Network -->
     <string name="pref_key_network" translatable="false">pref_key_network</string>
     <string name="pref_key_force_base_url_enabled" translatable="false">pref_key_force_base_url_enabled</string>
@@ -18,19 +19,25 @@
     <!-- PostListFragment -->
     <string name="pref_key_post_selectable" translatable="false">pref_key_post_selectable</string>
     <string name="pref_key_quick_side_bar_enable" translatable="false">pref_key_quick_side_bar_enable</string>
+    <string name="pref_key_post_disable_sticky" translatable="false">pref_key_post_disable_sticky</string>
     <!-- Download -->
     <string name="pref_key_image_total_cache_size" translatable="false">pref_key_image_total_cache_size</string>
     <string name="pref_key_data_total_cache_size" translatable="false">pref_key_data_total_cache_size</string>
     <string name="pref_key_net_cache_enable" translatable="false">pref_key_net_cache_enable</string>
     <string name="pref_key_download_avatars_strategy" translatable="false">pref_key_download_avatars_strategy</string>
     <string name="pref_key_avatar_resolution_strategy" translatable="false">pref_key_avatar_resolution_strategy</string>
+    <string name="pref_key_avatar_gif_enable" translatable="false">pref_key_avatar_gif_enable</string>
     <string name="pref_key_avatar_cache_invalidation_interval" translatable="false">pref_key_avatar_cache_invalidation_interval</string>
     <string name="pref_key_download_images_strategy" translatable="false">pref_key_download_images_strategy</string>
+    <string name="pref_key_multi_download" translatable="false">pref_key_multi_download</string>
+    <string name="pref_key_post_max_image_show" translatable="false">pref_key_post_max_image_show</string>
     <string name="pref_key_clear_image_cache" translatable="false">pref_key_clear_image_cache</string>
-    <!-- ReadProgress -->
+    <!-- Read -->
     <string name="pref_key_read_progress_save_auto" translatable="false">pref_key_read_progress_save_auto</string>
     <string name="pref_key_read_progress_load_auto" translatable="false">pref_key_read_progress_load_auto</string>
     <string name="pref_key_last_read_progress" translatable="false">pref_key_last_read_progress</string>
+    <string name="pref_key_volume_key_paging" translatable="false">pref_key_volume_key_paging</string>
+    <string name="pref_key_thread_padding" translatable="false">pref_key_thread_padding</string>
     <!-- Data -->
     <string name="pref_key_has_new_pm" translatable="false">pref_key_has_new_pm</string>
     <string name="pref_key_has_new_notice" translatable="false">pref_key_has_new_notice</string>

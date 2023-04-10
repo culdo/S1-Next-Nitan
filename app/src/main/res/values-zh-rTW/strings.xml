@@ -417,4 +417,19 @@
     <string name="manage_forum">管理板塊</string>
     <string name="red_envelopes_copy_label">紅包碼</string>
     <string name="title_copied">標題已複製</string>
+    <string name="action_app_login">登錄黑魔法</string>
+    <string name="menu_load_from_web">從網站加載</string>
+    <string name="menu_post_disable_sticky">不顯示置頂</string>
+    <string name="go_url">跳轉鏈接</string>
+    <string name="show_image">顯示圖片</string>
+    <string name="pref_check_update">檢查更新</string>
+    <string name="advise">提點建議</string>
+    <string name="pref_multi_download">多線程下載</string>
+    <string name="pref_post_max_image_show">每帖最多顯示圖片數</string>
+    <string name="go_note_web_hint">沒找到消息？點擊查看全部消息</string>
+    <string name="image">圖片</string>
+    <string name="quote">引用</string>
+    <string name="credit_permission">積分權限</string>
+    <string name="pref_thread_padding">主貼間距</string>
+    <string name="format_error">格式錯誤</string>
 </resources>

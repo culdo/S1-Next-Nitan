@@ -5,20 +5,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.support.annotation.CallSuper
-import android.support.design.widget.NavigationView
-import android.support.design.widget.Snackbar
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentTransaction
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.widget.Toolbar
+import androidx.annotation.CallSuper
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.appcompat.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import com.github.ykrank.androidautodispose.AndroidRxDispose
 import com.github.ykrank.androidlifecycle.event.ActivityEvent
-import com.github.ykrank.androidtools.guava.Optional
+import com.google.common.base.Optional
 import com.github.ykrank.androidtools.ui.LibBaseActivity
 import com.github.ykrank.androidtools.ui.internal.CoordinatorLayoutAnchorDelegate
 import com.github.ykrank.androidtools.ui.internal.DrawerLayoutDelegate
@@ -107,17 +107,17 @@ abstract class BaseActivity : LibBaseActivity() {
         super.onCreate(savedInstanceState)
 
         mRxBus.get()
-                .filter { o -> o is ThemeChangeEvent || o is FontSizeChangeEvent }
-                .to(AndroidRxDispose.withObservable(this, ActivityEvent.DESTROY))
-                .subscribe { o ->
-                    window.setWindowAnimations(R.style.Animation_Recreate)
-                    recreate()
-                }
+            .filter { o -> o is ThemeChangeEvent || o is FontSizeChangeEvent }
+            .to(AndroidRxDispose.withObservable(this, ActivityEvent.DESTROY))
+            .subscribe { o ->
+                window.setWindowAnimations(R.style.Animation_Recreate)
+                recreate()
+            }
         mRxBus.get(NoticeRefreshEvent::class.java)
-                .ofType(NoticeRefreshEvent::class.java)
-                .observeOn(AndroidSchedulers.mainThread())
-                .to(AndroidRxDispose.withObservable(this, ActivityEvent.DESTROY))
-                .subscribe { event -> refreshNoticeMenuItem(event.isNewPm, event.isNewNotice) }
+            .ofType(NoticeRefreshEvent::class.java)
+            .observeOn(AndroidSchedulers.mainThread())
+            .to(AndroidRxDispose.withObservable(this, ActivityEvent.DESTROY))
+            .subscribe { event -> refreshNoticeMenuItem(event.isNewPm, event.isNewNotice) }
     }
 
     override fun setTitle(title: CharSequence?) {
@@ -152,7 +152,7 @@ abstract class BaseActivity : LibBaseActivity() {
     }
 
     override fun findDrawerLayoutDelegate(): DrawerLayoutDelegate? {
-        val drawerLayout: DrawerLayout? = findViewById(R.id.drawer_layout)
+        val drawerLayout: androidx.drawerlayout.widget.DrawerLayout? = findViewById(R.id.drawer_layout)
         if (drawerLayout != null) {
             val navigationView: NavigationView = findViewById(R.id.navigation_view)
             drawerLayoutDelegate = DrawerLayoutDelegateConcrete(this, drawerLayout, navigationView)
@@ -193,8 +193,10 @@ abstract class BaseActivity : LibBaseActivity() {
                 return true
             }
             R.id.menu_thread_go -> {
-                ThreadGoDialogFragment().show(supportFragmentManager,
-                        ThreadGoDialogFragment.TAG)
+                ThreadGoDialogFragment().show(
+                    supportFragmentManager,
+                    ThreadGoDialogFragment.TAG
+                )
 
                 return true
             }
@@ -234,8 +236,9 @@ abstract class BaseActivity : LibBaseActivity() {
                 // We can't use #showShortText(String) because #onActivityResult(int, int, Intent)
                 // is always invoked when current app is running in the foreground (so we are
                 // unable to show a Toast if our app is running in the background).
-                data?.let {
-                    showShortSnackbar(it.getStringExtra(EXTRA_MESSAGE))
+                val msg = data?.getStringExtra(EXTRA_MESSAGE)
+                if (msg != null) {
+                    showShortSnackbar(msg)
                 }
             }
         }
@@ -278,12 +281,12 @@ abstract class BaseActivity : LibBaseActivity() {
         mDrawerIndicatorEnabled = false
     }
 
-    fun replaceFragmentWithBackStack(fragment: Fragment, tag: String) {
+    fun replaceFragmentWithBackStack(fragment: androidx.fragment.app.Fragment, tag: String) {
         supportFragmentManager.beginTransaction()
-                .replace(R.id.frame_layout, fragment, tag)
-                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                .addToBackStack(null)
-                .commit()
+            .replace(R.id.frame_layout, fragment, tag)
+            .setTransition(androidx.fragment.app.FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .addToBackStack(null)
+            .commit()
     }
 
     companion object {

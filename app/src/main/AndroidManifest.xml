@@ -4,7 +4,7 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- only get mac to verify user -->
+    <!-- to update image loader policy -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <!-- only need IMEI to verify user -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -12,6 +12,19 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- self update -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <queries>
+        <package android:name="com.eg.android.AlipayGphone" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data
+                android:host="bbs.saraba1st.com"
+                android:pathPattern=".*"
+                android:scheme="https" />
+        </intent>
+    </queries>
 
     <application
         android:name=".App"
@@ -22,6 +35,7 @@
         android:largeHeap="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.Light.AfternoonTea"
+        android:usesCleartextTraffic="true"
         tools:ignore="UnusedAttribute"
         tools:replace="android:theme">
 
@@ -44,16 +58,19 @@
 
         <activity
             android:name=".view.activity.LoginActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/activity_label_login"
             android:windowSoftInputMode="stateVisible|adjustResize" />
 
         <activity
-            android:name=".view.activity.AppLoginActivity"
-            android:label="@string/activity_label_login"
+            android:name=".view.page.app.AppLoginActivity"
+            android:colorMode="wideColorGamut"
+            android:label="@string/action_app_login"
             android:windowSoftInputMode="stateVisible|adjustResize" />
 
         <activity
             android:name=".view.activity.ForumActivity"
+            android:colorMode="wideColorGamut"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
@@ -64,31 +81,38 @@
 
         <activity
             android:name=".view.activity.SettingsActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/settings" />
 
         <activity
             android:name=".view.activity.HelpActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/help"
             android:process=":webView" />
 
         <activity
             android:name=".view.activity.FavouriteListActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.ThreadListActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
-            android:name=".view.activity.PostListActivity"
+            android:name=".view.page.post.PostListActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
-            android:name=".view.activity.AppPostListActivity"
+            android:name=".view.page.app.AppPostListActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
-            android:name=".view.activity.PostListGatewayActivity"
+            android:name=".view.page.post.PostListGatewayActivity"
+            android:colorMode="wideColorGamut"
             android:theme="@style/Theme.Translucent.Light">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -148,31 +172,39 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".view.activity.ReplyActivity" />
+        <activity
+            android:name=".view.activity.ReplyActivity"
+            android:colorMode="wideColorGamut" />
 
         <activity
             android:name=".view.activity.NewThreadActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/title_new_thread" />
 
         <activity
-            android:name=".view.activity.EditPostActivity"
+            android:name=".view.page.edit.EditPostActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/title_edit_post" />
 
         <activity
             android:name=".view.activity.GalleryActivity"
+            android:colorMode="wideColorGamut"
             android:theme="@style/Theme.Gallery" />
 
         <activity
             android:name=".view.activity.PmActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/pms"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".view.activity.NewPmActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/title_new_pm" />
 
         <activity
             android:name=".view.activity.SearchActivity"
+            android:colorMode="wideColorGamut"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
@@ -181,59 +213,72 @@
 
         <activity
             android:name=".view.activity.NoteActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/title_note"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.UserHomeActivity"
+            android:colorMode="wideColorGamut"
             android:label=""
             android:theme="@style/Theme.Translucent.AfternoonTea"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.FriendListActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/title_friends"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.UserThreadActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.UserReplyActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.NewRateActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.NewReportActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.HistoryActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/title_history"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.DarkRoomActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".view.activity.OpenSourceLicensesActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/open_source_licenses" />
 
-        <activity android:name=".view.activity.OpenSourceLicenseDetailActivity" />
+        <activity
+            android:name=".view.activity.OpenSourceLicenseDetailActivity"
+            android:colorMode="wideColorGamut" />
 
         <activity
             android:name=".view.activity.WebViewActivity"
+            android:colorMode="wideColorGamut"
             android:windowSoftInputMode="adjustPan" />
 
         <!-- FilePicker -->
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -244,6 +289,7 @@
 
         <activity
             android:name="com.nononsenseapps.filepicker.FilePickerActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/app_name"
             android:theme="@style/FilePickerTheme">
             <intent-filter>
@@ -254,8 +300,13 @@
 
         <activity
             android:name=".view.activity.RateDetailsListActivity"
+            android:colorMode="wideColorGamut"
             android:label="@string/rate" />
 
+        <activity
+            android:name="com.facebook.flipper.android.diagnostics.FlipperDiagnosticActivity"
+            android:colorMode="wideColorGamut"
+            android:exported="true" />
     </application>
 
 </manifest>

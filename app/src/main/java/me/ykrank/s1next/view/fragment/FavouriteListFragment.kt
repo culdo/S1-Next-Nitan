@@ -2,7 +2,7 @@ package me.ykrank.s1next.view.fragment
 
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.app.FragmentManager
+import androidx.fragment.app.FragmentManager
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -12,7 +12,6 @@ import com.github.ykrank.androidlifecycle.event.FragmentEvent
 import com.github.ykrank.androidtools.ui.LibBaseViewPagerFragment
 import com.github.ykrank.androidtools.util.RxJavaUtil
 import com.github.ykrank.androidtools.widget.RxBus
-import com.uber.autodispose.ObservableSubscribeProxy
 import me.ykrank.s1next.App
 import me.ykrank.s1next.R
 import me.ykrank.s1next.data.api.Api
@@ -47,21 +46,21 @@ class FavouriteListFragment : BaseViewPagerFragment() {
 
         mRxBus.get()
                 .ofType(FavoriteRemoveEvent::class.java)
-                .to<ObservableSubscribeProxy<FavoriteRemoveEvent>>(AndroidRxDispose.withObservable<FavoriteRemoveEvent>(this, FragmentEvent.DESTROY_VIEW))
-                .subscribe({ event ->
+                .to(AndroidRxDispose.withObservable(this, FragmentEvent.DESTROY_VIEW))
+                .subscribe { event ->
                     // reload when favorite remove
-                    ApiFlatTransformer.flatMappedWithAuthenticityToken(s1Service, mUserValidator, mUser,
-                            { token -> s1Service.removeThreadFavorite(token, event.favId) })
+                    ApiFlatTransformer.flatMappedWithAuthenticityToken(s1Service, mUserValidator, mUser
+                    ) { token -> s1Service.removeThreadFavorite(token, event.favId) }
                             .compose(RxJavaUtil.iOSingleTransformer())
                             .to(AndroidRxDispose.withSingle(this, FragmentEvent.DESTROY_VIEW))
                             .subscribe({ wrapper ->
                                 showShortSnackbar(wrapper.result.message)
                                 loadViewPager()
                             }, { this.onError(it) })
-                })
+                }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.fragment_favourites, menu)
     }
@@ -82,7 +81,7 @@ class FavouriteListFragment : BaseViewPagerFragment() {
         }
     }
 
-    override fun getPagerAdapter(fragmentManager: FragmentManager): LibBaseViewPagerFragment.BaseFragmentStatePagerAdapter<*> {
+    override fun getPagerAdapter(fragmentManager: FragmentManager): FragmentStatePagerAdapter<*> {
         return FavouriteListPagerAdapter(childFragmentManager)
     }
 
@@ -90,7 +89,7 @@ class FavouriteListFragment : BaseViewPagerFragment() {
      * Returns a Fragment corresponding to one of the pages of favourites.
      */
     private inner class FavouriteListPagerAdapter(fm: FragmentManager)
-        : LibBaseViewPagerFragment.BaseFragmentStatePagerAdapter<FavouriteListPagerFragment>(fm) {
+        : LibBaseViewPagerFragment.FragmentStatePagerAdapter<FavouriteListPagerFragment>(fm) {
 
         override fun getItem(i: Int): FavouriteListPagerFragment {
             return FavouriteListPagerFragment.newInstance(i + 1)

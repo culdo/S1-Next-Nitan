@@ -1,10 +1,10 @@
 package me.ykrank.s1next.data.api.model.collection;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.ykrank.androidtools.guava.Objects;
+import com.google.common.base.Objects;
 
 import java.util.List;
 
@@ -23,7 +23,6 @@ public final class PmGroups extends Account {
     @JsonProperty("count")
     private int total;
 
-    @Nullable
     @JsonProperty("list")
     private List<PmGroup> pmGroupList;
 

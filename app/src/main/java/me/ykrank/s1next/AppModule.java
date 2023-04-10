@@ -5,7 +5,6 @@ import android.content.Context;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.ykrank.androidtools.widget.EditorDiskCache;
 import com.github.ykrank.androidtools.widget.RxBus;
-import com.github.ykrank.androidtools.widget.hostcheck.HttpDns;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,6 @@ import dagger.Module;
 import dagger.Provides;
 import io.rx_cache2.internal.RxCache;
 import io.victoralbertos.jolyglot.JacksonSpeaker;
-import me.jessyan.progressmanager.ProgressManager;
 import me.ykrank.s1next.data.User;
 import me.ykrank.s1next.data.api.Api;
 import me.ykrank.s1next.data.api.ApiCacheProvider;
@@ -30,15 +28,18 @@ import me.ykrank.s1next.data.pref.NetworkPreferencesManager;
 import me.ykrank.s1next.task.AutoSignTask;
 import me.ykrank.s1next.viewmodel.UserViewModel;
 import me.ykrank.s1next.widget.RawJsonConverterFactory;
+import me.ykrank.s1next.widget.download.ImageDownloadManager;
 import me.ykrank.s1next.widget.glide.AvatarUrlsCache;
 import me.ykrank.s1next.widget.glide.OkHttpNoAvatarInterceptor;
 import me.ykrank.s1next.widget.hostcheck.AppHostUrl;
 import me.ykrank.s1next.widget.hostcheck.AppMultiHostInterceptor;
 import me.ykrank.s1next.widget.hostcheck.NoticeCheckTask;
 import me.ykrank.s1next.widget.net.AppData;
+import me.ykrank.s1next.widget.net.AppDns;
 import me.ykrank.s1next.widget.net.Data;
 import me.ykrank.s1next.widget.net.Image;
 import okhttp3.CookieJar;
+import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -51,6 +52,9 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 @Module(includes = BuildTypeModule.class)
 public final class AppModule {
 
+    AppModule() {
+    }
+
     @Provides
     @AppLife
     AppHostUrl provideBaseHostUrl(NetworkPreferencesManager networkPreferencesManager) {
@@ -59,16 +63,16 @@ public final class AppModule {
 
     @Provides
     @AppLife
-    HttpDns provideHttpDns(AppHostUrl baseHostUrl) {
-        return new HttpDns(baseHostUrl);
+    Dns provideHttpDns(Context context, AppHostUrl baseHostUrl) {
+        return new AppDns(context, baseHostUrl);
     }
 
     @Data
     @Provides
     @AppLife
-    OkHttpClient.Builder providerDataOkHttpClientBuilder(CookieJar cookieJar, AppHostUrl baseHostUrl) {
+    OkHttpClient.Builder providerDataOkHttpClientBuilder(CookieJar cookieJar, AppHostUrl baseHostUrl, Dns dns) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.dns(new HttpDns(baseHostUrl));
+        builder.dns(dns);
         builder.connectTimeout(10, TimeUnit.SECONDS);
         builder.writeTimeout(20, TimeUnit.SECONDS);
         builder.readTimeout(10, TimeUnit.SECONDS);
@@ -98,9 +102,9 @@ public final class AppModule {
     @Image
     @Provides
     @AppLife
-    OkHttpClient.Builder providerImageOkHttpClientBuilder(CookieJar cookieJar, AppHostUrl baseHostUrl) {
+    OkHttpClient.Builder providerImageOkHttpClientBuilder(CookieJar cookieJar, AppHostUrl baseHostUrl, Dns dns) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.dns(new HttpDns(baseHostUrl));
+        builder.dns(dns);
         builder.connectTimeout(17, TimeUnit.SECONDS);
         builder.writeTimeout(17, TimeUnit.SECONDS);
         builder.readTimeout(77, TimeUnit.SECONDS);
@@ -108,9 +112,6 @@ public final class AppModule {
         builder.cookieJar(cookieJar);
         builder.addNetworkInterceptor(new OkHttpNoAvatarInterceptor());
         builder.addInterceptor(new AppMultiHostInterceptor(baseHostUrl));
-
-        //Add progress manage
-        builder = ProgressManager.getInstance().with(builder);
 
         return builder;
     }
@@ -200,4 +201,9 @@ public final class AppModule {
         return new AvatarUrlsCache();
     }
 
+    @Provides
+    @AppLife
+    ImageDownloadManager provideImageDownloadManager(@Image OkHttpClient.Builder okHttpClientBuilder) {
+        return new ImageDownloadManager(okHttpClientBuilder);
+    }
 }

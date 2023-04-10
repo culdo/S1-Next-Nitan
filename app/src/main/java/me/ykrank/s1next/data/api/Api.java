@@ -1,9 +1,10 @@
 package me.ykrank.s1next.data.api;
 
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.webkit.URLUtil;
+
+import androidx.annotation.Nullable;
 
 import java.util.List;
 
@@ -53,6 +54,10 @@ public final class Api {
     public static final String URL_VIEW_VOTE = prepend("forum.php?mod=misc&action=viewvote");
 
     public static final String URL_DARK_ROOM = BASE_URL + "forum.php?mod=misc&action=showdarkroom&ajaxdata=json";
+
+    public static final String URL_WEB_BLACK_LIST = BASE_URL + "home.php?mod=space&do=friend&view=blacklist";
+
+    public static final String URL_VIEW_NOTE = prepend("home.php?mod=space&do=notice&view=system");
 
     private Api() {
     }
@@ -132,7 +137,8 @@ public final class Api {
     public static boolean isEmoticonName(String url) {
         if (URLUtil.isNetworkUrl(url)) {
             return url.startsWith(Api.BASE_URL + Api.URL_EMOTICON_IMAGE_PREFIX) ||
-                    url.startsWith(Api.BASE_STATIC_URL + Api.URL_EMOTICON_IMAGE_PREFIX_STATIC);
+                    url.startsWith(Api.BASE_STATIC_URL + Api.URL_EMOTICON_IMAGE_PREFIX_STATIC) ||
+                    url.startsWith(Api.BASE_STATIC_URL_HTTP + Api.URL_EMOTICON_IMAGE_PREFIX_STATIC);
         } else {
             return url.startsWith(Api.URL_EMOTICON_IMAGE_PREFIX);
         }

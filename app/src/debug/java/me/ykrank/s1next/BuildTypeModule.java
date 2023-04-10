@@ -2,15 +2,7 @@ package me.ykrank.s1next;
 
 import android.content.Context;
 
-import com.facebook.stetho.okhttp3.StethoInterceptor;
-import com.github.ykrank.androidtools.guava.Preconditions;
-import com.github.ykrank.androidtools.widget.NullTrustManager;
-
-import java.security.SecureRandom;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import com.facebook.flipper.plugins.network.FlipperOkhttpInterceptor;
 
 import dagger.Module;
 import dagger.Provides;
@@ -32,21 +24,7 @@ public final class BuildTypeModule {
     @Provides
     @AppLife
     OkHttpClient providerDataOkHttpClient(@Data OkHttpClient.Builder builder) {
-        Preconditions.checkState("debug".equals(BuildConfig.BUILD_TYPE));
-
-        //trust https
-        try {
-            X509TrustManager trustManager = new NullTrustManager();
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-            builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //Stetho
-        builder.addNetworkInterceptor(new StethoInterceptor());
-
+        builder.addInterceptor(new FlipperOkhttpInterceptor(PreApp.INSTANCE.getNetworkFlipperPlugin()));
         return builder.build();
     }
 
@@ -54,21 +32,7 @@ public final class BuildTypeModule {
     @Provides
     @AppLife
     OkHttpClient providerImageOkHttpClient(@Image OkHttpClient.Builder builder) {
-        Preconditions.checkState("debug".equals(BuildConfig.BUILD_TYPE));
-
-        //trust https
-        try {
-            X509TrustManager trustManager = new NullTrustManager();
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-            builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //Stetho
-        builder.addNetworkInterceptor(new StethoInterceptor());
-
+        builder.addInterceptor(new FlipperOkhttpInterceptor(PreApp.INSTANCE.getNetworkFlipperPlugin()));
         return builder.build();
     }
 
@@ -76,21 +40,7 @@ public final class BuildTypeModule {
     @Provides
     @AppLife
     OkHttpClient providerAppdataOkHttpClient(@AppData OkHttpClient.Builder builder) {
-        Preconditions.checkState("debug".equals(BuildConfig.BUILD_TYPE));
-
-        //trust https
-        try {
-            X509TrustManager trustManager = new NullTrustManager();
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{trustManager}, new SecureRandom());
-            builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        //Stetho
-        builder.addNetworkInterceptor(new StethoInterceptor());
-
+        builder.addInterceptor(new FlipperOkhttpInterceptor(PreApp.INSTANCE.getNetworkFlipperPlugin()));
         return builder.build();
     }
 }

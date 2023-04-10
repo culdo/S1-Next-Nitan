@@ -2,14 +2,13 @@ package me.ykrank.s1next.view.dialog
 
 import android.os.Bundle
 import com.github.ykrank.androidtools.extension.toast
-import com.github.ykrank.androidtools.guava.Optional
-import com.github.ykrank.androidtools.guava.Preconditions
+import com.google.common.base.Optional
 import io.reactivex.Single
 import me.ykrank.s1next.App
 import me.ykrank.s1next.R
 import me.ykrank.s1next.data.api.model.ThreadLink
 import me.ykrank.s1next.util.ErrorUtil
-import me.ykrank.s1next.view.activity.PostListActivity
+import me.ykrank.s1next.view.page.post.PostListActivity
 import java.util.regex.Pattern
 
 /**
@@ -28,17 +27,15 @@ class QuotePostPageParserDialogFragment : ProgressDialogFragment<String>() {
     }
 
     override fun getSourceObservable(): Single<String> {
-        val threadLink = arguments!!.getParcelable<ThreadLink>(
-                ARG_THREAD_LINK)
+        val threadLink = arguments!!.getParcelable<ThreadLink>(ARG_THREAD_LINK)!!
         return mS1Service.getQuotePostResponseBody(threadLink.threadId,
-                threadLink.quotePostId.get()).map { voidResponse -> voidResponse.raw().request().url().toString() }
+                threadLink.quotePostId.get()).map { voidResponse -> voidResponse.raw().request.url.toString() }
     }
 
     override fun onNext(url: String) {
         val jumpPage = parseQuotePostPage(url)
         if (jumpPage.isPresent) {
-            val threadLink = Preconditions.checkNotNull(arguments!!.getParcelable<ThreadLink>(
-                    ARG_THREAD_LINK))
+            val threadLink = arguments!!.getParcelable<ThreadLink>(ARG_THREAD_LINK)!!
             val threadLinkWithJumpPage = ThreadLink.Builder(threadLink.threadId)
                     .jumpPage(jumpPage.get())
                     .quotePostId(threadLink.quotePostId.get())
@@ -48,7 +45,7 @@ class QuotePostPageParserDialogFragment : ProgressDialogFragment<String>() {
             }
         } else {
             ThreadLinkInvalidPromptDialogFragment.newInstance(context,
-                    getString(R.string.dialog_message_quote_not_found)).show(fragmentManager,
+                    getString(R.string.dialog_message_quote_not_found)).show(fragmentManager!!,
                     ThreadLinkInvalidPromptDialogFragment.TAG)
             mShouldFinishActivity = false
         }
@@ -59,7 +56,7 @@ class QuotePostPageParserDialogFragment : ProgressDialogFragment<String>() {
         val errorMsg = ErrorUtil.parse(context, throwable)
         if (isVisible) {
             ThreadLinkInvalidPromptDialogFragment.newInstance(context, errorMsg)
-                    .show(fragmentManager, ThreadLinkInvalidPromptDialogFragment.TAG)
+                    .show(fragmentManager!!, ThreadLinkInvalidPromptDialogFragment.TAG)
             mShouldFinishActivity = false
         } else {
             App.get().toast(errorMsg)

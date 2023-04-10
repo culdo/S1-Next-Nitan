@@ -1,6 +1,6 @@
 package me.ykrank.s1next.data.api.model
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import com.github.ykrank.androidtools.ui.adapter.StableIdModel
 import com.github.ykrank.androidtools.util.L
 import me.ykrank.s1next.data.api.ApiUtil
@@ -75,7 +75,7 @@ class Rate : PaperParcelable, StableIdModel {
                         }
                         rate.uname = it.text()
                     }
-                    rate.time = df.parse(it.child(2).text()).time
+                    rate.time = df.parse(it.child(2).text())?.time
                     rate.content = it.child(3).text()
                     rates.add(rate)
                 }
